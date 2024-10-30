@@ -9,14 +9,27 @@ set_random_seed(42)
 
 @st.cache_data
 def carga_archivos(archivo):
-  DB = ""
-  if archivo is not None:
-    DB = pd.read_csv(archivo).drop(columns=['TIPO', 'VERSION'])
-    print("Base de datos cargada")
-    st.sidebar.success("Base de datos cargada")
-  else:
-    return pd.DataFrame()
-  return DB
+    DB = ""
+    if archivo is not None:
+        df = pd.read_csv(archivo)
+        
+        # Validar columnas
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        
+        if missing_columns:
+            # Mostrar advertencia si faltan columnas
+            st.sidebar.warning(f"El archivo cargado no es correcto. Faltan las siguientes columnas: {', '.join(missing_columns)}")
+            return pd.DataFrame()  # Devuelve un DataFrame vacío si hay columnas faltantes
+        else:
+            # Si todas las columnas están presentes, eliminar "TIPO" y "VERSION"
+            DB = df.drop(columns=['TIPO', 'VERSION'], errors='ignore')
+            print("Base de datos cargada")
+            st.sidebar.success("Base de datos cargada")
+    else:
+        st.sidebar.warning("Por favor, sube un archivo para cargar los datos.")
+        return pd.DataFrame()
+    
+    return DB
 
 def obtener_PCH_data(datos):
   query = """
