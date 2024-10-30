@@ -5,3 +5,4 @@ pandasql
 plotly
 streamlit
 torch
+scipy
