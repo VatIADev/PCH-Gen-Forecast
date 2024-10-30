@@ -18,7 +18,6 @@ def carga_archivos(archivo):
     return pd.DataFrame()
   return DB
 
-#WHERE fecha BETWEEN '2004-01-01' AND '2024-09-01'
 def obtener_PCH_data(datos):
   query = """
   SELECT strftime('%Y-%m', fecha) AS PERIODO,PLANTA,
@@ -50,6 +49,7 @@ def PCH_preprocess(datos,fecha):
   # Combinar resultados VNTA y VNTB
   full_df.loc[full_df['PLANTA'].isin(['VNTA', 'VNTB']), 'PLANTA'] = 'VNT1'
   PCH_data = full_df.groupby(['PLANTA', 'PERIODO'], as_index=False)['POT'].sum(min_count=1)
+  PCH_data = PCH_data[PCH_data['PLANTA'] != '2U1G']
   return PCH_data
 
 def setpoint(planta, horizonte):
@@ -176,7 +176,6 @@ def main():
     else:
       df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
       df_filtrado = imputar_TS(df_filtrado, 'POT')
-      print(df_filtrado)
       horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
       current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
       current_year, current_month = current_date.year, current_date.month-1
