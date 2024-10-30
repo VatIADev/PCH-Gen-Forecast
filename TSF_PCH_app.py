@@ -150,8 +150,8 @@ def graficar(datos, real_lim, quant):
 
 
 def main():
-  st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="/content/icon.png",layout="wide")
-  st.title("Pronóstico PCH V1.0")
+  st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="/images/icon.png",layout="wide")
+  st.title("Pronósticos Generación PCH V1.0")
   st.sidebar.title("Históricos de PCH")
   PCH_pot_data = carga_archivos(st.sidebar.file_uploader('Cargar historicos de Generación','csv'))
   if not PCH_pot_data.empty:
