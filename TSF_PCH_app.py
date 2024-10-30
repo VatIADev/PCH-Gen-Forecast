@@ -29,7 +29,6 @@ def carga_archivos(archivo):
             print("Base de datos cargada")
             st.sidebar.success("Base de datos cargada")
     else:
-        st.sidebar.warning("Por favor, sube un archivo para cargar los datos.")
         return pd.DataFrame()
     
     return DB
