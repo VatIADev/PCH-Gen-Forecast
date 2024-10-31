@@ -190,7 +190,8 @@ def main():
       st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
     else:
       df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
-      df_filtrado = imputar_TS(df_filtrado, 'POT')
+      if PCH_fil not in ['INZ1', 'OVJ1']:
+          df_filtrado = imputar_TS(df_filtrado, 'POT')
       horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
       current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
       current_year, current_month = current_date.year, current_date.month-1
