@@ -73,19 +73,19 @@ def setpoint(planta, horizonte):
         'epochs': 300, 'n_forecasts': horizonte, 'quantiles': []#[0.1, 0.9]
     }
     specific_params = {
-        'OVJ1': {},
-        'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear'},
-        'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8},
-        'INZ1': {},
-        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss},
-        'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss},
-        'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear'},
-        'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear'},
-        'SJN1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss},
-        'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss},
-        'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear'},
-        'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss},
-        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear'}
+        'OVJ1': {'valid_p':0.02},
+        'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
+        'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8, 'valid_p':0.2},
+        'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
+        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
+        'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
+        'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.05},
+        'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
+        'SJN1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
+        'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
+        'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.05},
+        'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
+        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15}
     }
     params = {**base_params, **specific_params.get(planta, {})}
 
@@ -93,13 +93,13 @@ def setpoint(planta, horizonte):
 
 def entrenar(datos,fecha,horizonte):
   params = setpoint(datos['PLANTA'].unique()[0],horizonte)
-  #st.write(params)
   datos.drop(["PLANTA"], axis=1, inplace=True)
   datos.columns = ['ds', 'y']
   train,test = datos[datos.ds <= fecha], datos[datos.ds > fecha]
+  valid_p = params.pop('valid_p')   
   m = NeuralProphet(**params)
   m.add_country_holidays("CO")
-  train, val = m.split_df(datos, freq='M', valid_p=0.2)
+  train, val = m.split_df(datos, freq='M', valid_p=valid_p)
   m.fit(train, freq = "M", validation_df=val, early_stopping=True, checkpointing=True)
   std = interv_pron(m,train)
   return m, val, params.get('quantiles'), std
