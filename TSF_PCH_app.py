@@ -81,7 +81,7 @@ def setpoint(planta, horizonte):
         'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.05},
         'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.15},
+        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
         'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.05},
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
@@ -190,7 +190,7 @@ def main():
       st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
     else:
       df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
-      if PCH_fil not in ['INZ1', 'OVJ1']:
+      if PCH_fil not in ['INZ1', 'OVJ1','SJN1']:
           df_filtrado = imputar_TS(df_filtrado, 'POT')
       horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
       current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
