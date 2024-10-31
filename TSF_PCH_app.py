@@ -71,7 +71,7 @@ def cut_data(datos,planta):
     cuts = {
         'RCIO': {'2020-09-01'},
     }
-    datos = datos[datos.ds >= cuts.get(planta, {'1900-01-01'})]
+    datos = datos[datos.PERIODO >= cuts.get(planta, {'1900-01-01'})]
     return datos
 
 def setpoint(planta, horizonte):
@@ -198,7 +198,7 @@ def main():
       st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
     else:
       df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
-      if PCH_fil not in ['INZ1', 'OVJ1','SJN1']:
+      if PCH_fil not in ['INZ1', 'OVJ1', 'SJN1']:
           df_filtrado = imputar_TS(df_filtrado, 'POT')
       horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
       current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
@@ -222,7 +222,7 @@ def main():
         unsafe_allow_html=True)
       col1.markdown(f"""
         <div style="font-size:20px; font-weight:bold;">
-            Disponibilidad Históricos (AAAA/MM)
+            Disponibilidad de datos (AAAA/MM)
         </div>
         <div style="font-size:32px;">
             {current_date.strftime('%Y/%m')}
