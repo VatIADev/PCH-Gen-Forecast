@@ -73,7 +73,7 @@ def setpoint(planta, horizonte):
         'epochs': 300, 'n_forecasts': horizonte, 'quantiles': []#[0.1, 0.9]
     }
     specific_params = {
-        'OVJ1': {'valid_p':0.02},
+        'OVJ1': {'valid_p':0.02, 'growth': 'linear'},
         'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
         'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8, 'valid_p':0.2},
         'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
