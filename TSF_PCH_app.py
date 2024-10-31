@@ -81,7 +81,7 @@ def setpoint(planta, horizonte):
         'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.05},
         'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.05},
+        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.03},
         'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.05},
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
