@@ -69,7 +69,7 @@ def PCH_preprocess(datos,fecha):
 
 def setpoint(planta, horizonte):
     base_params = {
-        'n_changepoints': 10, 'changepoints_range': 0.9, 'growth': 'discontinuous', 'optimizer': 'AdamW',
+        'n_changepoints': 12, 'changepoints_range': 0.9, 'growth': 'discontinuous', 'optimizer': 'AdamW',
         'epochs': 300, 'n_forecasts': horizonte, 'quantiles': []#[0.1, 0.9]
     }
     specific_params = {
