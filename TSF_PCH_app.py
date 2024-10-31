@@ -77,7 +77,7 @@ def setpoint(planta, horizonte):
         'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
         'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8, 'valid_p':0.2},
         'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
-        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.05},
+        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.01},
         'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.05},
         'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
