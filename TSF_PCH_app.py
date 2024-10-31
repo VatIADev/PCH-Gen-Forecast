@@ -68,7 +68,6 @@ def PCH_preprocess(datos,fecha):
   return PCH_data
 
 def cut_data(datos,planta):
-    st.write(planta)
     cuts = {
         'RCIO': {'2020-09-01'}
     }
