@@ -67,6 +67,13 @@ def PCH_preprocess(datos,fecha):
   PCH_data = PCH_data[PCH_data['PLANTA'] != '2U1G']
   return PCH_data
 
+def cut_data(datos,planta):
+    cuts = {
+        'RCIO': {'2020-09-01'},
+    }
+    datos = datos[datos.ds >= cuts.get(planta, {'1900-01-01'})]
+    return datos
+
 def setpoint(planta, horizonte):
     base_params = {
         'n_changepoints': 24, 'changepoints_range': 0.9, 'growth': 'discontinuous', 'optimizer': 'AdamW',
@@ -93,6 +100,7 @@ def setpoint(planta, horizonte):
 
 def entrenar(datos,fecha,horizonte):
   params = setpoint(datos['PLANTA'].unique()[0],horizonte)
+  datos = cut_data(datos,datos['PLANTA'].unique()[0])  
   datos.drop(["PLANTA"], axis=1, inplace=True)
   datos.columns = ['ds', 'y']
   train,test = datos[datos.ds <= fecha], datos[datos.ds > fecha]
