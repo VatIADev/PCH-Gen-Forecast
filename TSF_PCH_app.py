@@ -72,7 +72,8 @@ def cut_data(datos,planta):
     cuts = {
         'RCIO': {'2020-09-01'}
     }
-    datos = datos[datos.PERIODO >= cuts.get(planta, {'1900-01-01'})]
+    fecha_corte = next(iter(cuts.get(planta, {'1900-01-01'})))  # Extrae la fecha del conjunto
+    datos = datos[datos.PERIODO >= fecha_corte]
     return datos
 
 def setpoint(planta, horizonte):
