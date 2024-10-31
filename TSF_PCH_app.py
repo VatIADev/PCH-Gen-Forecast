@@ -113,8 +113,8 @@ def interv_pron(m,train):
 def pronostico(val,modelo,horizonte,real_lim,std):
   df_future = modelo.make_future_dataframe(val, periods = horizonte, n_historic_predictions = real_lim)
   forecast = modelo.predict(df_future)
-  forecast['Low'] = forecast['yhat1'] - 1.645 * std
-  forecast['High'] = forecast['yhat1'] + 1.645 * std
+  forecast['Low'] = forecast['yhat1'] - 1.281 * std
+  forecast['High'] = forecast['yhat1'] + 1.281 * std
   return forecast
 
 def graficar(datos, real_lim, quant):
