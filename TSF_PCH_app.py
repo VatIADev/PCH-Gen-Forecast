@@ -250,7 +250,7 @@ def main():
         extracto.index = extracto.index.strftime('%Y-%m')
 
         # Formatear todas las columnas a dos decimales
-        extracto = extracto.map(lambda x: f"{x:.4f}")
+        extracto = extracto.map(lambda x: f"{x:.3f}")
 
         placeholder.success("Proceso Finalizado.")
         st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
