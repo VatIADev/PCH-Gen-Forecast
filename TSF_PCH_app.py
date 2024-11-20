@@ -81,17 +81,17 @@ def setpoint(planta, horizonte):
         'epochs': 300, 'n_forecasts': horizonte, 'quantiles': []#[0.1, 0.9]
     }
     specific_params = {
-        'OVJ1': {'valid_p':0.02},
+        'OVJ1': {'valid_p':0.1},
         'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
         'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8, 'valid_p':0.2},
         'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
-        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.9, 'valid_p':0.01},
+        'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.9, 'valid_p':0.1},
         'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
-        'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.05},
+        'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
         'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.03},
+        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.09},
         'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
-        'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.05},
+        'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.1},
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
         'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15}
     }
@@ -175,7 +175,7 @@ def graficar(datos, real_lim, quant):
 
 def main():
   st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
-  st.title("Pronósticos Generación PCH V1.0")
+  st.title("Pronósticos Generación PCH V2.0")
   st.sidebar.title("Históricos de PCH")
   PCH_pot_data = carga_archivos(st.sidebar.file_uploader('Cargar historicos de Generación','csv'))
   if not PCH_pot_data.empty:
@@ -193,49 +193,40 @@ def main():
                        "MND1": "MONDOMO"}
     PCHS_desc = ['--'] + [f"{pch} - {descripcion_PCH.get(pch,'')}" for pch in PCHS]
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
-    selected_option = st.selectbox('Selecciona una PCH', PCHS_desc)
-    PCH_fil = descripcion_to_pch.get(selected_option, None)
-    if PCH_fil == None:
-      st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
-    else:
-      df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
-      if PCH_fil not in ['INZ1', 'OVJ1', 'SJN1']:
-          df_filtrado = imputar_TS(df_filtrado, 'POT')
-      horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
-      current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
-      current_year, current_month = current_date.year, current_date.month-1
-      years = list(range(current_year - 5, current_year + 1))
-      months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
-                'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    
+    with st.container(border=True):
+      selected_option = st.selectbox('Selecciona una PCH', PCHS_desc)
+      PCH_fil = descripcion_to_pch.get(selected_option, None)
+      if PCH_fil == None:
+        st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
+      else:
+        df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
+        if PCH_fil not in ['INZ1', 'OVJ1', 'SJN1']:
+            df_filtrado = imputar_TS(df_filtrado, 'POT')
+        horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
+        current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
+        current_year, current_month = current_date.year, current_date.month-1
+        months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
+                  'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-      col1, col2 = st.columns(2)
-      # Encontrar el valor máximo y el periodo correspondiente
-      max_value = round(max(df_filtrado.POT.dropna()), 3)
-      max_period = df_filtrado.loc[df_filtrado.POT.idxmax(),'PERIODO'].strftime('%Y - %m')
-      # Mostrar el metric con el valor máximo y el periodo
-      col2.markdown(f"""
-        <div style="font-size:20px; font-weight:bold;">
-            Máxima Generación (GW-mes)
-        </div>
-        <div style="font-size:32px;">
-            {max_value} <span style="font-size:16px; color:gray;">({max_period})</span>
-        </div>""",
-        unsafe_allow_html=True)
-      col1.markdown(f"""
-        <div style="font-size:20px; font-weight:bold;">
-            Disponibilidad de datos (AAAA/MM)
-        </div>
-        <div style="font-size:32px;">
-            {current_date.strftime('%Y/%m')}
-        </div>""",
-        unsafe_allow_html=True)
+        # Encontrar el valor máximo y el periodo correspondiente
+        max_value = round(max(df_filtrado.POT.dropna()), 3)
+        max_period = df_filtrado.loc[df_filtrado.POT.idxmax(),'PERIODO'].strftime('%Y - %m')
+      
+        st.markdown('<h3 style="font-size: 16px;">Información Histórica:</h3>', unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([3,3])
+        col1.metric('Máxima Generación (GW-mes)', max_value,'('+max_period+')', delta_color="off")
+        col2.metric('Disponibilidad de datos (AAAA/MM)', current_date.strftime('%Y/%m'))
 
-      with col1:
-        selected_year = st.selectbox('Año', years, index=years.index(current_year))
-      with col2:
-        selected_month = st.selectbox('Mes', months, index=current_month+1)
+    with st.container(border=True):
+      st.markdown('<h3 style="font-size: 16px;">Datos de Pronóstico:</h3>', unsafe_allow_html=True)
+      col3, col4 = st.columns([3,3])
+      col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+      col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
+      selected_month = months[current_month+1]
 
-      fecha = pd.Timestamp(year=int(selected_year), month=months.index(selected_month)+1, day=1)
+      fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
       placeholder = st.empty()
       if st.sidebar.button("Generar pronóstico", use_container_width=True):
         placeholder.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
