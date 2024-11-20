@@ -4,5 +4,5 @@ pandas
 pandasql
 plotly
 streamlit
-torch==2.5.1+cu121
+torch
 scipy
