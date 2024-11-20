@@ -222,7 +222,10 @@ def main():
     with st.container(border=True):
       st.markdown('<h3 style="font-size: 16px;">Datos de Pronóstico:</h3>', unsafe_allow_html=True)
       col3, col4 = st.columns([3,3])
-      col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+      if PCH_fil != None:
+        col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+      else:
+        col3.metric('Periodo Inicial','--')
       col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
       selected_month = months[current_month+1]
 
