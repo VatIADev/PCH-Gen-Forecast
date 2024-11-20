@@ -10,15 +10,15 @@ set_random_seed(42)
 @st.cache_data
 def carga_archivos(archivo):
     required_columns = ["TIPO", "PLANTA", "VERSION", "FECHA", "H01", "H02", "H03", "H04", "H05",
-                        "H06", "H07", "H08", "H09", "H10", "H11", "H12", "H13", "H14", "H15", 
+                        "H06", "H07", "H08", "H09", "H10", "H11", "H12", "H13", "H14", "H15",
                         "H16","H17", "H18", "H19", "H20", "H21", "H22", "H23", "H24"]
     DB = ""
     if archivo is not None:
         df = pd.read_csv(archivo)
-        
+
         # Validar columnas
         missing_columns = [col for col in required_columns if col not in df.columns]
-        
+
         if missing_columns:
             # Mostrar advertencia si faltan columnas
             st.sidebar.warning(f"El archivo cargado no es correcto. Faltan las siguientes columnas: {', '.join(missing_columns)}")
@@ -30,7 +30,7 @@ def carga_archivos(archivo):
             st.sidebar.success("Base de datos cargada")
     else:
         return pd.DataFrame()
-    
+
     return DB
 
 def obtener_PCH_data(datos):
@@ -101,11 +101,11 @@ def setpoint(planta, horizonte):
 
 def entrenar(datos,fecha,horizonte):
   params = setpoint(datos['PLANTA'].unique()[0],horizonte)
-  datos = cut_data(datos,datos['PLANTA'].unique()[0])  
+  datos = cut_data(datos,datos['PLANTA'].unique()[0])
   datos.drop(["PLANTA"], axis=1, inplace=True)
   datos.columns = ['ds', 'y']
   train,test = datos[datos.ds <= fecha], datos[datos.ds > fecha]
-  valid_p = params.pop('valid_p')   
+  valid_p = params.pop('valid_p')
   m = NeuralProphet(**params)
   m.add_country_holidays("CO")
   train, val = m.split_df(datos, freq='M', valid_p=valid_p)
@@ -117,7 +117,7 @@ def interv_pron(m,train):
   hist_fitting = m.predict(train)
   errors = hist_fitting['yhat1'].values - train['y'].values
   std_error = np.std(errors)
-  return std_error 
+  return std_error
 
 def pronostico(val,modelo,horizonte,real_lim,std):
   df_future = modelo.make_future_dataframe(val, periods = horizonte, n_historic_predictions = real_lim)
@@ -193,7 +193,7 @@ def main():
                        "MND1": "MONDOMO"}
     PCHS_desc = ['--'] + [f"{pch} - {descripcion_PCH.get(pch,'')}" for pch in PCHS]
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
-    
+
     with st.container(border=True):
       selected_option = st.selectbox('Selecciona una PCH', PCHS_desc)
       PCH_fil = descripcion_to_pch.get(selected_option, None)
@@ -212,9 +212,9 @@ def main():
         # Encontrar el valor máximo y el periodo correspondiente
         max_value = round(max(df_filtrado.POT.dropna()), 3)
         max_period = df_filtrado.loc[df_filtrado.POT.idxmax(),'PERIODO'].strftime('%Y - %m')
-      
+
         st.markdown('<h3 style="font-size: 16px;">Información Histórica:</h3>', unsafe_allow_html=True)
-        
+
         col1, col2 = st.columns([3,3])
         col1.metric('Máxima Generación (GW-mes)', max_value,'('+max_period+')', delta_color="off")
         col2.metric('Disponibilidad de datos (AAAA/MM)', current_date.strftime('%Y/%m'))
@@ -246,11 +246,8 @@ def main():
 
           placeholder.success("Proceso Finalizado.")
           st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
-          st.dataframe(extracto, height=200, width=2000)  
-        else:
-          col3.metric('Periodo Inicial','--')
-          col4.metric('Horizonte de Pronóstico','-- mes(es)')
-            
+          st.dataframe(extracto, height=200, width=2000)
+      
   else:
     st.warning("Por favor carga un archivo para continuar..")
 
