@@ -225,32 +225,32 @@ def main():
       if PCH_fil != None:
         col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
         col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
-      else:
-        col3.metric('Periodo Inicial','--')
-        col4.metric('Horizonte de Pronóstico','-- mes(es)')
-      
-      selected_month = months[current_month+1]
+        selected_month = months[current_month+1]
 
-      fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
-      placeholder = st.empty()
-      if st.sidebar.button("Generar pronóstico", use_container_width=True):
-        placeholder.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
-        modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
-        forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
-        extracto = forecast[['ds', 'yhat1', 'Low', 'High']].iloc[15:]
-        extracto['yhat1'] = extracto['yhat1'].apply(lambda x: max(x, 0))
-        extracto['Low'] = extracto['Low'].apply(lambda x: max(x, 0))
-        extracto['High'] = extracto['High'].apply(lambda x: max(x, 0))
-        extracto.columns = ['Periodo', 'Pronóstico (GW-mes)', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
-        extracto.set_index('Periodo', inplace=True)
-        extracto.index = extracto.index.strftime('%Y-%m')
+        fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
+        placeholder = st.empty()
+        if st.sidebar.button("Generar pronóstico", use_container_width=True):
+          placeholder.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
+          modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
+          forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
+          extracto = forecast[['ds', 'yhat1', 'Low', 'High']].iloc[15:]
+          extracto['yhat1'] = extracto['yhat1'].apply(lambda x: max(x, 0))
+          extracto['Low'] = extracto['Low'].apply(lambda x: max(x, 0))
+          extracto['High'] = extracto['High'].apply(lambda x: max(x, 0))
+          extracto.columns = ['Periodo', 'Pronóstico (GW-mes)', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
+          extracto.set_index('Periodo', inplace=True)
+          extracto.index = extracto.index.strftime('%Y-%m')
 
-        # Formatear todas las columnas a dos decimales
-        extracto = extracto.map(lambda x: f"{x:.3f}")
+          # Formatear todas las columnas a dos decimales
+          extracto = extracto.map(lambda x: f"{x:.3f}")
 
-        placeholder.success("Proceso Finalizado.")
-        st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
-        st.dataframe(extracto, height=200, width=2000)
+          placeholder.success("Proceso Finalizado.")
+          st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
+          st.dataframe(extracto, height=200, width=2000)  
+        else:
+          col3.metric('Periodo Inicial','--')
+          col4.metric('Horizonte de Pronóstico','-- mes(es)')
+            
   else:
     st.warning("Por favor carga un archivo para continuar..")
 
