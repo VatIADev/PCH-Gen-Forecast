@@ -228,7 +228,7 @@ def main():
       else:
         col3.metric('Periodo Inicial','--')
         col4.metric('Horizonte de Pronóstico','-- mes(es)')
-      col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
+      
       selected_month = months[current_month+1]
 
       fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
