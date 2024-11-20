@@ -224,8 +224,10 @@ def main():
       col3, col4 = st.columns([3,3])
       if PCH_fil != None:
         col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+        col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
       else:
         col3.metric('Periodo Inicial','--')
+        col4.metric('Horizonte de Pronóstico','-- mes(es)')
       col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
       selected_month = months[current_month+1]
 
