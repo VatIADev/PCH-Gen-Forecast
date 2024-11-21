@@ -65,7 +65,19 @@ def PCH_preprocess(datos,fecha):
   full_df.loc[full_df['PLANTA'].isin(['VNTA', 'VNTB']), 'PLANTA'] = 'VNT1'
   PCH_data = full_df.groupby(['PLANTA', 'PERIODO'], as_index=False)['POT'].sum(min_count=1)
   PCH_data = PCH_data[PCH_data['PLANTA'] != '2U1G']
+  PCH_data = agrupar_zona_PCH(PCH_data,'CAUC',['MND1','SLV1','FLRD','OVJ1','INZ1','ASN1','LPLO'])
+  PCH_data = agrupar_zona_PCH(PCH_data,'HTOL',['VNT1','STG1','RCIO','MIR1','PST1'])
+  PCH_data = agrupar_zona_PCH(PCH_data,'VAT1',['CAUC','HTOL'])  
   return PCH_data
+
+def agrupar_zona_PCH(df, zona, plantas):
+  df_grupo = (
+    df[df["PLANTA"].isin(plantas)]
+    .groupby("PERIODO", as_index=False)
+    .agg({"POT": "sum"}))
+  df_grupo["PLANTA"] = str(zona)
+  df_tot = pd.concat([df, df_grupo], ignore_index=True)
+  return df_tot
 
 def cut_data(datos,planta):
     cuts = {
@@ -96,6 +108,7 @@ def setpoint(planta, horizonte):
         'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15},
         'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
         'HTOL': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
+        'VAT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
     }
     params = {**base_params, **specific_params.get(planta, {})}
 
@@ -193,7 +206,7 @@ def main():
                        "SJN1": "SAJANDÍ", "PST1": "PASTALES",
                        "ASN1": "ASNAZÚ" , "LPLO": "RIO PALO",
                        "MND1": "MONDOMO", "CAUC": "Grupo PCH Cauca",
-                       "HTOL":"Grupo PCH Hidrotolima"}
+                       "HTOL":"Grupo PCH Hidrotolima", "VAT1": "Total PCHs"}
     PCHS_desc = ['--'] + [f"{pch} - {descripcion_PCH.get(pch,'')}" for pch in PCHS]
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
 
@@ -206,7 +219,9 @@ def main():
         df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
         if PCH_fil not in ['INZ1', 'OVJ1', 'SJN1']:
             df_filtrado = imputar_TS(df_filtrado, 'POT')
+
         horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
+
         current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
         current_year, current_month = current_date.year, current_date.month-1
         months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
@@ -250,7 +265,7 @@ def main():
           placeholder.success("Proceso Finalizado.")
           st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
           st.dataframe(extracto, height=200, width=2000)
-      
+
   else:
     st.warning("Por favor carga un archivo para continuar..")
 
