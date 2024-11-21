@@ -93,7 +93,9 @@ def setpoint(planta, horizonte):
         'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
         'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.1},
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
-        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15}
+        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15},
+        'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
+        'HTOL': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
     }
     params = {**base_params, **specific_params.get(planta, {})}
 
@@ -190,7 +192,8 @@ def main():
                        "RCIO": "RIO RECIO", "OVJ1": "OVEJAS",
                        "SJN1": "SAJANDÍ", "PST1": "PASTALES",
                        "ASN1": "ASNAZÚ" , "LPLO": "RIO PALO",
-                       "MND1": "MONDOMO"}
+                       "MND1": "MONDOMO", "CAUC": "Grupo PCH Cauca",
+                       "HTOL":"Grupo PCH Hidrotolima"}
     PCHS_desc = ['--'] + [f"{pch} - {descripcion_PCH.get(pch,'')}" for pch in PCHS]
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
 
