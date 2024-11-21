@@ -107,7 +107,7 @@ def setpoint(planta, horizonte):
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
         'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15},
         'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'HTOL': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
+        'HTOL': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
         'VAT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
     }
     params = {**base_params, **specific_params.get(planta, {})}
