@@ -7,27 +7,31 @@ import plotly.graph_objects as go
 from neuralprophet import NeuralProphet, set_log_level, set_random_seed
 set_random_seed(42)
 
+def crear_placeholder():
+    placeholder = st.sidebar.empty()  # Crear un placeholder vacío
+    return placeholder
+
 @st.cache_data
 def carga_archivos(archivo):
     required_columns = ["TIPO", "PLANTA", "VERSION", "FECHA", "H01", "H02", "H03", "H04", "H05",
                         "H06", "H07", "H08", "H09", "H10", "H11", "H12", "H13", "H14", "H15",
                         "H16","H17", "H18", "H19", "H20", "H21", "H22", "H23", "H24"]
     DB = ""
+    alerta = crear_placeholder()
     if archivo is not None:
         df = pd.read_csv(archivo)
-
         # Validar columnas
         missing_columns = [col for col in required_columns if col not in df.columns]
 
         if missing_columns:
             # Mostrar advertencia si faltan columnas
-            st.sidebar.warning(f"El archivo cargado no es correcto. Faltan las siguientes columnas: {', '.join(missing_columns)}")
+            alerta.warning(f":no_entry: El archivo cargado no es correcto. Faltan las siguientes columnas: {', '.join(missing_columns)}")
             return pd.DataFrame()  # Devuelve un DataFrame vacío si hay columnas faltantes
         else:
             # Si todas las columnas están presentes, eliminar "TIPO" y "VERSION"
             DB = df.drop(columns=['TIPO', 'VERSION'], errors='ignore')
-            print("Base de datos cargada")
-            st.sidebar.success("Base de datos cargada")
+            #print("Base de datos cargada")
+            alerta.success(":heavy_check_mark: Base de datos cargada")
     else:
         return pd.DataFrame()
 
@@ -115,41 +119,36 @@ def setpoint(planta, horizonte):
     return params
 
 def entrenar(datos,fecha,horizonte):
-  params = setpoint(datos['PLANTA'].unique()[0],horizonte)
-  datos = cut_data(datos,datos['PLANTA'].unique()[0])
-  datos.drop(["PLANTA"], axis=1, inplace=True)
-  datos.columns = ['ds', 'y']
-  train,test = datos[datos.ds <= fecha], datos[datos.ds > fecha]
-  valid_p = params.pop('valid_p')
-  m = NeuralProphet(**params)
-  m.add_country_holidays("CO")
-  train, val = m.split_df(datos, freq='M', valid_p=valid_p)
-  m.fit(train, freq = "M", validation_df=val, early_stopping=True, checkpointing=True)
-  std = interv_pron(m,train)
-  return m, val, params.get('quantiles'), std
+    params = setpoint(datos['PLANTA'].unique()[0],horizonte)
+    datos = cut_data(datos,datos['PLANTA'].unique()[0])
+    datos.drop(["PLANTA"], axis=1, inplace=True)
+    datos.columns = ['ds', 'y']
+    train,test = datos[datos.ds <= fecha], datos[datos.ds > fecha]
+    valid_p = params.pop('valid_p')
+    m = NeuralProphet(**params)
+    m.add_country_holidays("CO")
+    train, val = m.split_df(datos, freq='M', valid_p=valid_p)
+    m.fit(train, freq = "M", validation_df=val, early_stopping=True, checkpointing=True)
+    std = interv_pron(m,train)
+    return m, val, params.get('quantiles'), std
 
 def interv_pron(m,train):
-  hist_fitting = m.predict(train)
-  errors = hist_fitting['yhat1'].values - train['y'].values
-  std_error = np.std(errors)
-  return std_error
+    hist_fitting = m.predict(train)
+    errors = hist_fitting['yhat1'].values - train['y'].values
+    std_error = np.std(errors)
+    return std_error
 
 def pronostico(val,modelo,horizonte,real_lim,std):
-  df_future = modelo.make_future_dataframe(val, periods = horizonte, n_historic_predictions = real_lim)
-  forecast = modelo.predict(df_future)
-  forecast['Low'] = forecast['yhat1'] - 1.281 * std
-  forecast['High'] = forecast['yhat1'] + 1.281 * std
-  return forecast
+    df_future = modelo.make_future_dataframe(val, periods = horizonte, n_historic_predictions = real_lim)
+    forecast = modelo.predict(df_future)
+    forecast['Low'] = forecast['yhat1'] - 1.645 * std
+    forecast['High'] = forecast['yhat1'] - 0.822 * std
+    return True, forecast
 
-def graficar(datos, real_lim, quant):
-    # Tomar el primer punto de los datos de pronóstico
-    primer_pron = datos.iloc[real_lim]
+def graficar(datos, real_lim, quant, PCH):
+    primer_pron = datos.iloc[real_lim-1][['ds','y']]
 
-    # Añadir el primer punto del pronóstico al final de los datos reales para unificar la serie
     datos_reales = datos.iloc[:real_lim].copy()
-    datos_reales = pd.concat([datos_reales, pd.DataFrame({'ds': [primer_pron['ds']], 'y': [primer_pron['yhat1']]})])
-
-    # Convertir valores negativos en cero en los datos reales y pronóstico
     datos_reales['y'] = datos_reales['y'].apply(lambda x: max(x, 0))
 
     datos_pron = datos.iloc[real_lim:].copy()
@@ -157,22 +156,28 @@ def graficar(datos, real_lim, quant):
     datos_pron['Low'] = datos_pron['Low'].apply(lambda x: max(x, 0))
     datos_pron['High'] = datos_pron['High'].apply(lambda x: max(x, 0))
 
+    datos_pron = pd.concat([pd.DataFrame({'ds': [primer_pron['ds']], 'yhat1': [primer_pron['y']],
+                                          'Low': [primer_pron['y']], 'High': [primer_pron['y']]}), datos_pron])
+
     # Graficar los datos reales extendidos
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=datos_reales['ds'], y=datos_reales['y'], mode='lines', name='Datos Reales'))
+    fig.add_trace(go.Scatter(x=datos_reales['ds'], y=datos_reales['y'], mode='lines', line=dict(width=3, color='blue'), name='Datos Reales'))
 
     # Graficar el pronóstico a partir de la posición real_lim
-    fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['yhat1'].clip(lower=0), mode='lines', name='Pronóstico'))
-    fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['Low'].clip(lower=0), mode='lines', line=dict(width=0), showlegend=False))
-    fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['High'], mode='lines', fill='tonexty', line=dict(width=0), fillcolor='rgba(173, 216, 230, 0.3)', showlegend=True, name='Intervalo'))
+    if PCH != 'FLRD':
+      fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['yhat1'].clip(lower=0), mode='lines', line=dict(dash='dot', width=3, color='blue'), name='', showlegend=False))
+    else:
+      fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['High'].clip(lower=0), mode='lines', line=dict(dash='dot', width=3, color='blue'), name='', showlegend=False))
 
+    fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['Low'].clip(lower=0), mode='lines', fill='tonexty', line=dict(dash='dot', width=3, color='blue'), fillcolor='rgba(173, 216, 230, 0.5)', name='Pronóstico', showlegend=True))
+    
     # Configuración del diseño del gráfico
-    fig.update_layout(title='', plot_bgcolor='rgba(0,0,0,0)', width=2000, height=450,
+    fig.update_layout(title='', plot_bgcolor='rgba(0,0,0,0)', width=2100, height=450,
                       yaxis=dict(color="black"),
-                      font=dict(family="Futura LT Medium", color='black'),
-                      xaxis=dict(color="black", tickmode='array', tickangle=-30,
-                                 tickvals=datos['ds'].dt.to_period('M').astype(str),
-                                 ticktext=datos['ds'].dt.to_period('M').astype(str)),
+                      font=dict(family="Prompt", color='black'),
+                      xaxis=dict(color="black", tickmode='array', tickangle=-90,
+                                 tickvals=datos['ds'].dt.strftime('%Y-%m'),
+                                 ticktext=datos['ds'].dt.strftime('%Y-%m')),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                                   font_size=16, font_color='black'),
                       showlegend=True)
@@ -189,10 +194,45 @@ def graficar(datos, real_lim, quant):
 
 
 def main():
+  font = """
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap');
+
+        body, h1, h2, h3, h4, h5, h6, p, .stDataFrame, .css-1y0t9o9, .stButton>button, .css-1wa3eu0, .css-10jvk68, .css-1y0t9o9 {
+            font-family: 'Prompt', sans-serif !important;
+        }
+
+    </style>
+  """
   st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
-  st.title("Pronósticos Generación PCH V2.0")
-  st.sidebar.title("Históricos de PCH")
-  PCH_pot_data = carga_archivos(st.sidebar.file_uploader('Cargar historicos de Generación','csv'))
+  st.markdown(font, unsafe_allow_html=True)
+  est_pron = False
+  st.sidebar.header("Pronósticos Generación PCH")
+  st.markdown('<br>', unsafe_allow_html=True)
+  st.sidebar.write('**Notificaciones**')
+  st.markdown('<br>', unsafe_allow_html=True)
+  with st.expander('📤 **Cargar históricos de generación**',expanded=True):
+    PCH_pot_data = carga_archivos(st.file_uploader('','csv'))
+    css = '''<style>
+      [data-testid='stFileUploader'] {
+          width: 100%;
+      }
+      [data-testid='stFileUploader'] section {
+          padding: 0.5em;
+          float: left;
+      }
+      [data-testid='stFileUploader'] section > input + div {
+          display: true;
+          padding: 0.5em;
+      }
+      [data-testid='stFileUploader'] section + div {
+          float: center;
+          padding: 1em;
+      }
+    </style>
+    '''
+    st.markdown(css, unsafe_allow_html=True)
+    placeholder_1 = st.sidebar.empty()
   if not PCH_pot_data.empty:
     if 'PCH_pot_data_f3' not in st.session_state:
       PCH_pot_data_f2 = obtener_PCH_data(PCH_pot_data)
@@ -211,63 +251,64 @@ def main():
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
 
     with st.container(border=True):
-      selected_option = st.selectbox('Selecciona una PCH', PCHS_desc)
+      selected_option = st.sidebar.selectbox('**Selecciona una PCH**', PCHS_desc)
       PCH_fil = descripcion_to_pch.get(selected_option, None)
       if PCH_fil == None:
-        st.warning("Por favor selecciona una PCH antes de proceder con su pronóstico.")
+        placeholder_1.warning(":point_down: Por favor selecciona una PCH antes de proceder con su pronóstico.")
       else:
         df_filtrado = PCH_pot_data_f3[PCH_pot_data_f3['PLANTA'] == PCH_fil]
         if PCH_fil not in ['INZ1', 'OVJ1', 'SJN1']:
             df_filtrado = imputar_TS(df_filtrado, 'POT')
 
-        horizonte = st.sidebar.slider('Horizonte de pronóstico (Meses)', 1, 15, 15)
-
         current_date,min_date = df_filtrado['PERIODO'].max(), df_filtrado['PERIODO'].min()
         current_year, current_month = current_date.year, current_date.month-1
-        months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
-                  'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+        months = ['Ene -', 'Feb -', 'Mar -', 'Abr -', 'May -', 'Jun -',
+                  'Jul -', 'Ago -', 'Sep -', 'Oct -', 'Nov -', 'Dic -']
 
         # Encontrar el valor máximo y el periodo correspondiente
-        max_value = round(max(df_filtrado.POT.dropna()), 3)
+        max_value = round(max(df_filtrado.POT.dropna()), 2)
         max_period = df_filtrado.loc[df_filtrado.POT.idxmax(),'PERIODO'].strftime('%Y - %m')
+        expander = st.sidebar.expander('**Información Histórica:**', expanded=True)
+        expander.metric(':bulb: Máxima Generación (GW-mes)', max_value,'('+max_period+')', delta_color="off")
+        expander.metric(':date: Disponibilidad de datos (AAAA/MM)', current_date.strftime('%Y/%m'))
 
-        st.markdown('<h3 style="font-size: 16px;">Información Histórica:</h3>', unsafe_allow_html=True)
-
-        col1, col2 = st.columns([3,3])
-        col1.metric('Máxima Generación (GW-mes)', max_value,'('+max_period+')', delta_color="off")
-        col2.metric('Disponibilidad de datos (AAAA/MM)', current_date.strftime('%Y/%m'))
-
-    with st.container(border=True):
-      st.markdown('<h3 style="font-size: 16px;">Datos de Pronóstico:</h3>', unsafe_allow_html=True)
-      col3, col4 = st.columns([3,3])
+    with st.expander('📊 **Información de Pronóstico:**',expanded=True):
+      col3, col4 = st.columns([1,3])
       if PCH_fil != None:
-        col3.metric('Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
-        col4.metric('Horizonte de Pronóstico', str(horizonte)+' mes(es)')
+        col3.metric(':alarm_clock: Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+        horizonte = col4.slider(':calendar: Horizonte de pronóstico (meses)', 1, 15, 15)
         selected_month = months[current_month+1]
-
         fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
-        placeholder = st.empty()
-        if st.sidebar.button("Generar pronóstico", use_container_width=True):
-          placeholder.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
-          modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
-          forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
-          extracto = forecast[['ds', 'yhat1', 'Low', 'High']].iloc[15:]
+        #if st.sidebar.button(":chart_with_upwards_trend: :zap: Pronosticar", use_container_width=True):
+        placeholder_1.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
+        modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
+        est_pron, forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
+        st.plotly_chart(graficar(forecast, 15, quant, PCH_fil), use_container_width=True)
+
+    with st.expander('📥 **Descarga de Resultados:**',expanded=False):
+        if est_pron:
+          extracto = forecast[['ds', 'Low', 'yhat1']].iloc[15:]
+        else:
+          extracto = pd.DataFrame(columns=['ds', 'Low', 'yhat1'])
+
+        if PCH_fil != 'FLRD':
           extracto['yhat1'] = extracto['yhat1'].apply(lambda x: max(x, 0))
-          extracto['Low'] = extracto['Low'].apply(lambda x: max(x, 0))
-          extracto['High'] = extracto['High'].apply(lambda x: max(x, 0))
-          extracto.columns = ['Periodo', 'Pronóstico (GW-mes)', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
+        else:
+          extracto['yhat1'] = forecast['High'].iloc[15:].apply(lambda x: max(x, 0))
+
+        extracto['Low'] = extracto['Low'].apply(lambda x: max(x, 0))
+        extracto.columns = ['Periodo', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
+        #extracto.columns = ['Periodo', 'Pronóstico (GW-mes)', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
+        if extracto.empty:
+          pass
+        else:
           extracto.set_index('Periodo', inplace=True)
           extracto.index = extracto.index.strftime('%Y-%m')
-
-          # Formatear todas las columnas a dos decimales
           extracto = extracto.map(lambda x: f"{x:.3f}")
-
-          placeholder.success("Proceso Finalizado.")
-          st.plotly_chart(graficar(forecast, 15, quant), use_container_width=True)
-          st.dataframe(extracto, height=200, width=2000)
-
+          placeholder_1.success(":chart_with_upwards_trend: :heavy_check_mark: Proceso Finalizado")
+        st.dataframe(extracto.style.applymap(lambda x: "font-size: 18pt"),height=200, width=2000)
   else:
-    st.warning("Por favor carga un archivo para continuar..")
+    st.sidebar.warning(":warning: Por favor, carga un archivo para continuar..")
 
 if __name__ == "__main__":
   main()
