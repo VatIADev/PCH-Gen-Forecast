@@ -383,9 +383,6 @@ pygit2==1.16.0
 Pygments==2.18.0
 PyGObject==3.42.1
 PyJWT==2.10.1
-pylibcudf-cu12==24.10.1
-pylibcugraph-cu12==24.10.0
-pylibraft-cu12==24.10.0
 pymc==5.19.1
 pymystem3==0.2.0
 pyngrok==7.2.3
