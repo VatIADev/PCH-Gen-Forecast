@@ -240,7 +240,6 @@ lazr.restfulclient==0.14.4
 lazr.uri==1.0.6
 lazy_loader==0.4
 libclang==18.1.1
-libcudf-cu12==24.10.1
 librosa==0.10.2.post1
 lightgbm==4.5.0
 lightning-utilities==0.11.9
@@ -508,7 +507,7 @@ torch==2.5.1
 torchaudio==2.5.1
 torchmetrics==1.6.1
 torchsummary==1.5.1
-torchvision==0.20.1+cu121
+torchvision==0.20.1
 tornado==6.3.3
 tqdm==4.67.1
 traitlets==5.7.1
