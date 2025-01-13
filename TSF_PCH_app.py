@@ -31,57 +31,57 @@ def carga_archivos(archivo):
             # Si todas las columnas están presentes, eliminar "TIPO" y "VERSION"
             DB = df.drop(columns=['TIPO', 'VERSION'], errors='ignore')
             #print("Base de datos cargada")
-            alerta.success(":heavy_check_mark: Base de datos cargada")
+            alerta.success("🗃️ :heavy_check_mark: Base de datos cargada")
     else:
         return pd.DataFrame()
 
     return DB
 
 def obtener_PCH_data(datos):
-  query = """
-  SELECT strftime('%Y-%m', fecha) AS PERIODO,PLANTA,
-  SUM(H01 + H02 + H03 + H04 + H05 + H06 + H07 + H08 + H09 + H10 + H11 + H12 + H13 + H14 + H15 + H16 + H17 + H18 + H19 + H20 + H21 + H22 + H23 + H24)/1e6 AS POT
-  FROM datos
-  GROUP BY PLANTA, PERIODO
-  ORDER BY PLANTA ASC, PERIODO ASC;
-  """
-  result = psql.sqldf(query, locals())
-  result['PERIODO'] = pd.to_datetime(result['PERIODO'])
-  return result
+    query = """
+    SELECT strftime('%Y-%m', fecha) AS PERIODO,PLANTA,
+    SUM(H01 + H02 + H03 + H04 + H05 + H06 + H07 + H08 + H09 + H10 + H11 + H12 + H13 + H14 + H15 + H16 + H17 + H18 + H19 + H20 + H21 + H22 + H23 + H24)/1e6 AS POT
+    FROM datos
+    GROUP BY PLANTA, PERIODO
+    ORDER BY PLANTA ASC, PERIODO ASC;
+    """
+    result = psql.sqldf(query, locals())
+    result['PERIODO'] = pd.to_datetime(result['PERIODO'])
+    return result
 
 def imputar_TS(df, columna_valores):
-    umbral = df[columna_valores].max() * (15 / 100)
-    df[columna_valores] = df[columna_valores].apply(lambda x: x if x >= umbral else float('nan'))
-    df[columna_valores] = df[columna_valores].interpolate(method='cubic')
+    umbral = df.loc[:,columna_valores].max() * (15 / 100)
+    df.loc[:,columna_valores] = df.loc[:,columna_valores].apply(lambda x: x if x >= umbral else float('nan'))
+    df.loc[:,columna_valores] = df.loc[:,columna_valores].interpolate(method='cubic')
     return df
 
 def PCH_preprocess(datos,fecha):
-  start_date,end_date = datos['PERIODO'].min(),datos['PERIODO'].max()
-  all_periods = pd.date_range(start=start_date, end=end_date, freq='MS').strftime('%Y-%m').tolist()
-  # Crear un DataFrame con todas las combinaciones posibles de PLANTA y PERIODO
-  all_plants = datos['PLANTA'].unique()
-  combinations = pd.MultiIndex.from_product([all_plants, all_periods], names=['PLANTA', 'PERIODO'])
-  full_df = pd.DataFrame(index=combinations).reset_index()
-  full_df['PERIODO'] = pd.to_datetime(full_df['PERIODO'] + '-01')
-  # Combinar con el DataFrame original y llenar valores NaN donde faltan datos
-  full_df = pd.merge(full_df, datos, how='left', on=['PLANTA', 'PERIODO'])[full_df['PERIODO'] >= fecha].reset_index(drop=True)
-  # Combinar resultados VNTA y VNTB
-  full_df.loc[full_df['PLANTA'].isin(['VNTA', 'VNTB']), 'PLANTA'] = 'VNT1'
-  PCH_data = full_df.groupby(['PLANTA', 'PERIODO'], as_index=False)['POT'].sum(min_count=1)
-  PCH_data = PCH_data[PCH_data['PLANTA'] != '2U1G']
-  PCH_data = agrupar_zona_PCH(PCH_data,'CAUC',['MND1','SLV1','FLRD','OVJ1','INZ1','ASN1','LPLO'])
-  PCH_data = agrupar_zona_PCH(PCH_data,'HTOL',['VNT1','STG1','RCIO','MIR1','PST1'])
-  PCH_data = agrupar_zona_PCH(PCH_data,'VAT1',['CAUC','HTOL'])  
-  return PCH_data
+    start_date,end_date = datos['PERIODO'].min(),datos['PERIODO'].max()
+    all_periods = pd.date_range(start=start_date, end=end_date, freq='MS').strftime('%Y-%m').tolist()
+    # Crear un DataFrame con todas las combinaciones posibles de PLANTA y PERIODO
+    all_plants = datos['PLANTA'].unique()
+    combinations = pd.MultiIndex.from_product([all_plants, all_periods], names=['PLANTA', 'PERIODO'])
+    full_df = pd.DataFrame(index=combinations).reset_index()
+    full_df['PERIODO'] = pd.to_datetime(full_df['PERIODO'] + '-01')
+    # Combinar con el DataFrame original y llenar valores NaN donde faltan datos
+    full_df = pd.merge(full_df, datos, how='left', on=['PLANTA', 'PERIODO'])[full_df['PERIODO'] >= fecha].reset_index(drop=True)
+    # Combinar resultados VNTA y VNTB
+    full_df.loc[full_df['PLANTA'].isin(['VNTA', 'VNTB']), 'PLANTA'] = 'VNT1'
+    PCH_data = full_df.groupby(['PLANTA', 'PERIODO'], as_index=False)['POT'].sum(min_count=1)
+    PCH_data = PCH_data[PCH_data['PLANTA'] != '2U1G']
+    PCH_data = agrupar_zona_PCH(PCH_data,'CAUC',['MND1','SLV1','FLRD','OVJ1','INZ1','ASN1','LPLO'])
+    PCH_data = agrupar_zona_PCH(PCH_data,'HTOL',['VNT1','STG1','RCIO','MIR1','PST1'])
+    PCH_data = agrupar_zona_PCH(PCH_data,'VAT1',['CAUC','HTOL'])
+    return PCH_data
 
 def agrupar_zona_PCH(df, zona, plantas):
-  df_grupo = (
-    df[df["PLANTA"].isin(plantas)]
-    .groupby("PERIODO", as_index=False)
-    .agg({"POT": "sum"}))
-  df_grupo["PLANTA"] = str(zona)
-  df_tot = pd.concat([df, df_grupo], ignore_index=True)
-  return df_tot
+    df_grupo = (
+      df[df["PLANTA"].isin(plantas)]
+      .groupby("PERIODO", as_index=False)
+      .agg({"POT": "sum"}))
+    df_grupo["PLANTA"] = str(zona)
+    df_tot = pd.concat([df, df_grupo], ignore_index=True)
+    return df_tot
 
 def cut_data(datos,planta):
     cuts = {
@@ -111,7 +111,7 @@ def setpoint(planta, horizonte):
         'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
         'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15},
         'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'HTOL': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
+        'HTOL': {'n_changepoints': 6, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.2},
         'VAT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
     }
     params = {**base_params, **specific_params.get(planta, {})}
@@ -170,7 +170,7 @@ def graficar(datos, real_lim, quant, PCH):
       fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['High'].clip(lower=0), mode='lines', line=dict(dash='dot', width=3, color='blue'), name='', showlegend=False))
 
     fig.add_trace(go.Scatter(x=datos_pron['ds'], y=datos_pron['Low'].clip(lower=0), mode='lines', fill='tonexty', line=dict(dash='dot', width=3, color='blue'), fillcolor='rgba(173, 216, 230, 0.5)', name='Pronóstico', showlegend=True))
-    
+
     # Configuración del diseño del gráfico
     fig.update_layout(title='', plot_bgcolor='rgba(0,0,0,0)', width=2100, height=450,
                       yaxis=dict(color="black"),
@@ -207,9 +207,10 @@ def main():
   st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
   st.markdown(font, unsafe_allow_html=True)
   est_pron = False
+  st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
   st.sidebar.header("Pronósticos Generación PCH")
   st.markdown('<br>', unsafe_allow_html=True)
-  st.sidebar.write('**Notificaciones**')
+  st.sidebar.write('**🚨 Notificaciones**')
   st.markdown('<br>', unsafe_allow_html=True)
   with st.expander('📤 **Cargar históricos de generación**',expanded=True):
     PCH_pot_data = carga_archivos(st.file_uploader('','csv'))
@@ -228,6 +229,10 @@ def main():
       [data-testid='stFileUploader'] section + div {
           float: center;
           padding: 1em;
+      }
+      [data-testid="stSidebar"] img {
+          margin-top: -70px  !important; /* Ajustar según el espacio requerido */
+          margin-left: 0px;
       }
     </style>
     '''
@@ -249,7 +254,7 @@ def main():
                        "HTOL":"Grupo PCH Hidrotolima", "VAT1": "Total PCHs"}
     PCHS_desc = ['--'] + [f"{pch} - {descripcion_PCH.get(pch,'')}" for pch in PCHS]
     descripcion_to_pch = dict(zip(PCHS_desc[1:], PCHS))
-
+    st.sidebar.divider()
     with st.container(border=True):
       selected_option = st.sidebar.selectbox('**Selecciona una PCH**', PCHS_desc)
       PCH_fil = descripcion_to_pch.get(selected_option, None)
@@ -306,7 +311,9 @@ def main():
           extracto.index = extracto.index.strftime('%Y-%m')
           extracto = extracto.map(lambda x: f"{x:.3f}")
           placeholder_1.success(":chart_with_upwards_trend: :heavy_check_mark: Proceso Finalizado")
-        st.dataframe(extracto.style.applymap(lambda x: "font-size: 18pt"),height=200, width=2000)
+        st.dataframe(extracto.style.map(lambda x: "font-size: 18pt"),#(**{'', }),
+                     height=200, width=2000)
+
   else:
     st.sidebar.warning(":warning: Por favor, carga un archivo para continuar..")
 
