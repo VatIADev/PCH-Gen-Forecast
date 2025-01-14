@@ -1,4 +1,4 @@
-neuralprophet
+neuralprophet==0.6.0
 numpy
 pandas
 pandasql
