@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pandasql as psql
-import torch.nn as nn
+from torch.nn import HuberLoss
 import plotly.graph_objects as go
 from neuralprophet import NeuralProphet, set_log_level, set_random_seed
 set_random_seed(42)
@@ -100,19 +100,19 @@ def setpoint(planta, horizonte):
         'OVJ1': {'valid_p':0.1},
         'FLRD': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
         'MIR1': {'n_changepoints': 6, 'growth': 'linear', 'changepoints_range': 0.8, 'valid_p':0.2},
-        'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
+        'INZ1': {'n_changepoints': 24, 'changepoints_range': 0.8, 'loss_func':HuberLoss, 'valid_p':0.1},
         'RCIO': {'n_changepoints': 15, 'changepoints_range': 0.9, 'valid_p':0.1},
-        'PST1': {'n_changepoints': 36, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
+        'PST1': {'n_changepoints': 36, 'loss_func':HuberLoss, 'valid_p':0.2},
         'VNT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'growth': 'linear', 'valid_p':0.1},
-        'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.09},
-        'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.2},
-        'LPLO': {'n_changepoints': 10, 'loss_func':nn.HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.1},
-        'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'valid_p':0.1},
-        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.15},
-        'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1},
-        'HTOL': {'n_changepoints': 6, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.2},
-        'VAT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':nn.HuberLoss, 'growth': 'linear', 'valid_p':0.1}
+        'STG1': {'n_changepoints': 6, 'changepoints_range': 0.9, 'loss_func':HuberLoss, 'growth': 'linear', 'valid_p':0.1},
+        'SJN1': {'n_changepoints': 24, 'changepoints_range': 0.9, 'loss_func':HuberLoss, 'valid_p':0.09},
+        'ASN1': {'n_changepoints': 5, 'changepoints_range': 0.9, 'loss_func':HuberLoss, 'valid_p':0.2},
+        'LPLO': {'n_changepoints': 10, 'loss_func':HuberLoss, 'changepoints_range': 0.75, 'growth': 'linear', 'valid_p':0.1},
+        'MND1': {'n_changepoints': 3, 'changepoints_range': 0.9, 'loss_func':HuberLoss, 'valid_p':0.1},
+        'SLV1': {'n_changepoints': 13, 'changepoints_range': 0.9, 'loss_func':HuberLoss, 'growth': 'linear', 'valid_p':0.15},
+        'CAUC': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':HuberLoss, 'growth': 'linear', 'valid_p':0.1},
+        'HTOL': {'n_changepoints': 6, 'changepoints_range': 0.8, 'loss_func':HuberLoss, 'growth': 'linear', 'valid_p':0.2},
+        'VAT1': {'n_changepoints': 10, 'changepoints_range': 0.8, 'loss_func':HuberLoss, 'growth': 'linear', 'valid_p':0.1}
     }
     params = {**base_params, **specific_params.get(planta, {})}
 
