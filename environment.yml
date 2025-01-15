@@ -1,5 +1,6 @@
 name: TSF
 channels:
+  - https://repo.anaconda.com/pkgs/main
   - conda-forge
 dependencies:
   - _py-xgboost-mutex=2.0=gpu_0
@@ -302,4 +303,4 @@ dependencies:
       - torchmetrics==1.6.1
       - werkzeug==3.1.3
       - yarl==1.18.3
-prefix: C:\Users\sergi\anaconda3\envs\TSF
+#prefix: C:\Users\sergi\anaconda3\envs\TSF
