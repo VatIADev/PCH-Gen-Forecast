@@ -1,6 +1,7 @@
 name: TSF
 channels:
   - defaults
+  - https://repo.anaconda.com/pkgs/msys2
 dependencies:
   - _py-xgboost-mutex=2.0=gpu_0
   - altair=5.5.0=pyhd8ed1ab_1
