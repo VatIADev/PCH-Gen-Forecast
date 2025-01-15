@@ -1,7 +1,7 @@
 name: TSF
 channels:
   - defaults
-  - https://repo.anaconda.com/pkgs/msys2
+  - conda-forge
 dependencies:
   - _py-xgboost-mutex=2.0=gpu_0
   - altair=5.5.0=pyhd8ed1ab_1
@@ -160,7 +160,9 @@ dependencies:
   - openssl=3.4.0=ha4e3fda_1
   - orc=2.0.1=hd8d391b_0
   - packaging=24.2=py311haa95532_0
+  - pandas=2.2.3=py311h5da7b33_0
   - pandas-profiling=3.0.0=pyhd8ed1ab_0
+  - pandasql=0.7.3=py311haa95532_1
   - parso=0.8.4=pyhd8ed1ab_1
   - passwordless=2.0.0=pyhd8ed1ab_1
   - patsy=1.0.1=pyhd8ed1ab_1
@@ -291,8 +293,6 @@ dependencies:
       - mpmath==1.3.0
       - multidict==6.1.0
       - neuralprophet==0.9.0
-      - pandasql==0.7.3
-      - pandas
       - plotly==5.24.1
       - propcache==0.2.1
       - pytorch-lightning==2.5.0.post0
