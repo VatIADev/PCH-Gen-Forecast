@@ -1,7 +1,6 @@
 name: TSF
 channels:
-  - https://repo.anaconda.com/pkgs/main
-  - conda-forge
+  - defaults
 dependencies:
   - _py-xgboost-mutex=2.0=gpu_0
   - altair=5.5.0=pyhd8ed1ab_1
