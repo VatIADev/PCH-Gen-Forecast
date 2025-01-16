@@ -4,7 +4,10 @@ import numpy as np
 import pandasql as psql
 from torch.nn import HuberLoss
 import plotly.graph_objects as go
+import os, time
 from neuralprophet import NeuralProphet, set_log_level, set_random_seed
+os.environ['TZ'] = 'America/Bogota'
+time.tzset()
 set_random_seed(42)
 
 def crear_placeholder():
