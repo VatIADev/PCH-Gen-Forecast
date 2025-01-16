@@ -2,6 +2,6 @@ numpy
 pandas
 plotly
 streamlit
-neuralprophet
+neuralprophet==0.9.0
 pandasql
 torch
