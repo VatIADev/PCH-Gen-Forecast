@@ -4,10 +4,7 @@ import numpy as np
 import pandasql as psql
 from torch.nn import HuberLoss
 import plotly.graph_objects as go
-import os, time
 from neuralprophet import NeuralProphet, set_log_level, set_random_seed
-os.environ['TZ'] = 'America/Bogota'
-time.tzset()
 set_random_seed(42)
 
 def crear_placeholder():
@@ -34,7 +31,7 @@ def carga_archivos(archivo):
             # Si todas las columnas están presentes, eliminar "TIPO" y "VERSION"
             DB = df.drop(columns=['TIPO', 'VERSION'], errors='ignore')
             #print("Base de datos cargada")
-            alerta.success("🗃️ :heavy_check_mark: Base de datos cargada")
+            alerta.success("✅🗃️ Base de datos cargada")
     else:
         return pd.DataFrame()
 
@@ -210,7 +207,7 @@ def main():
   st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
   st.markdown(font, unsafe_allow_html=True)
   est_pron = False
-  st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
+  #st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
   st.sidebar.header("Pronósticos Generación PCH")
   st.markdown('<br>', unsafe_allow_html=True)
   st.sidebar.write('**🚨 Notificaciones**')
@@ -313,7 +310,7 @@ def main():
           extracto.set_index('Periodo', inplace=True)
           extracto.index = extracto.index.strftime('%Y-%m')
           extracto = extracto.map(lambda x: f"{x:.3f}")
-          placeholder_1.success(":chart_with_upwards_trend: :heavy_check_mark: Proceso Finalizado")
+          placeholder_1.success("✅ :chart_with_upwards_trend: Proceso Finalizado")
         st.dataframe(extracto.style.map(lambda x: "font-size: 18pt"),#(**{'', }),
                      height=200, width=2000)
 
