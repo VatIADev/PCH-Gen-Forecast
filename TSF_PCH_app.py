@@ -280,7 +280,8 @@ def main():
     with st.expander('📊 **Información de Pronóstico:**',expanded=True):
       col3, col4 = st.columns([1,3])
       if PCH_fil != None:
-        col3.metric(':alarm_clock: Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+        col3.metric(':alarm_clock: Periodo Inicial', f"{months[(current_month % 12) + 1]} {current_year + (current_month // 12)}")  
+        #col3.metric(':alarm_clock: Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
         horizonte = col4.slider(':calendar: Horizonte de pronóstico (meses)', 1, 15, 15)
         selected_month = months[current_month+1]
         fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
