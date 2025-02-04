@@ -192,9 +192,9 @@ def graficar(datos, real_lim, quant, PCH):
 
     return fig
 
-
-def main():
-  font = """
+def estilo():
+   st.markdown(
+    """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap');
 
@@ -202,41 +202,40 @@ def main():
             font-family: 'Prompt', sans-serif !important;
         }
 
+        [data-testid='stFileUploader'] {
+          width: 100%;
+        }
+        [data-testid='stFileUploader'] section {
+            padding: 0.5em;
+            float: left;
+        }
+        [data-testid='stFileUploader'] section > input + div {
+            display: true;
+            padding: 0.5em;
+        }
+        [data-testid='stFileUploader'] section + div {
+            float: center;
+            padding: 1em;
+        }
+        [data-testid="stSidebar"] img {
+            margin-top: -70px  !important; /* Ajustar según el espacio requerido */
+            margin-left: 0px;
+        }
     </style>
-  """
-  st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
-  st.markdown(font, unsafe_allow_html=True)
-  est_pron = False
+    """, unsafe_allow_html=True)
+
+
+def main():
+ st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
+  estilo()
   #st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
+  est_pron = False
   st.sidebar.header("Pronósticos Generación PCH")
   st.markdown('<br>', unsafe_allow_html=True)
   st.sidebar.write('**🚨 Notificaciones**')
   st.markdown('<br>', unsafe_allow_html=True)
   with st.expander('📤 **Cargar históricos de generación**',expanded=True):
     PCH_pot_data = carga_archivos(st.file_uploader('','csv'))
-    css = '''<style>
-      [data-testid='stFileUploader'] {
-          width: 100%;
-      }
-      [data-testid='stFileUploader'] section {
-          padding: 0.5em;
-          float: left;
-      }
-      [data-testid='stFileUploader'] section > input + div {
-          display: true;
-          padding: 0.5em;
-      }
-      [data-testid='stFileUploader'] section + div {
-          float: center;
-          padding: 1em;
-      }
-      [data-testid="stSidebar"] img {
-          margin-top: -70px  !important; /* Ajustar según el espacio requerido */
-          margin-left: 0px;
-      }
-    </style>
-    '''
-    st.markdown(css, unsafe_allow_html=True)
     placeholder_1 = st.sidebar.empty()
   if not PCH_pot_data.empty:
     if 'PCH_pot_data_f3' not in st.session_state:
@@ -280,12 +279,10 @@ def main():
     with st.expander('📊 **Información de Pronóstico:**',expanded=True):
       col3, col4 = st.columns([1,3])
       if PCH_fil != None:
-        col3.metric(':alarm_clock: Periodo Inicial', f"{months[(current_month % 12) + 1]} {current_year + (current_month // 12)}")  
-        #col3.metric(':alarm_clock: Periodo Inicial', str(months[current_month+1])+' '+str(current_year))
+        col3.metric(':alarm_clock: Periodo Inicial', f"{months[current_month+1] if current_month != 11 else months[0]} {current_year if current_month != 11 else current_year+1}")
         horizonte = col4.slider(':calendar: Horizonte de pronóstico (meses)', 1, 15, 15)
-        selected_month = months[current_month+1]
-        fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month), day=1)
-        #if st.sidebar.button(":chart_with_upwards_trend: :zap: Pronosticar", use_container_width=True):
+        selected_month = months[current_month+1] if current_month != 11 else months[0]
+        fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month)+1, day=1)
         placeholder_1.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
         modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
         est_pron, forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
@@ -304,14 +301,13 @@ def main():
 
         extracto['Low'] = extracto['Low'].apply(lambda x: max(x, 0))
         extracto.columns = ['Periodo', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
-        #extracto.columns = ['Periodo', 'Pronóstico (GW-mes)', 'Generación Mínima (GW-mes)', 'Generación Máxima (GW-mes)']
         if extracto.empty:
           pass
         else:
           extracto.set_index('Periodo', inplace=True)
           extracto.index = extracto.index.strftime('%Y-%m')
           extracto = extracto.map(lambda x: f"{x:.3f}")
-          placeholder_1.success("✅ :chart_with_upwards_trend: Proceso Finalizado")
+          placeholder_1.success("✅:chart_with_upwards_trend: Proceso Finalizado")
         st.dataframe(extracto.style.map(lambda x: "font-size: 18pt"),#(**{'', }),
                      height=200, width=2000)
 
