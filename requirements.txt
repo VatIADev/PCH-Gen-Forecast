@@ -5,3 +5,4 @@ streamlit
 neuralprophet==0.9.0
 pandasql
 torch
+scipy
