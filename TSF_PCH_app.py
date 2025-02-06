@@ -226,9 +226,9 @@ def estilo():
 
 
 def main():
- st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
+  st.set_page_config(page_title="Pronóstico PCH Vatia",page_icon="images/icon.png",layout="wide")
   estilo()
-  #st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
+  st.sidebar.image("images/LogoVatia.png",caption="",use_container_width=True)
   est_pron = False
   st.sidebar.header("Pronósticos Generación PCH")
   st.markdown('<br>', unsafe_allow_html=True)
