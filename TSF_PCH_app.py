@@ -184,9 +184,9 @@ def graficar(datos, real_lim, quant, PCH):
 
     # Configuración del eje X e Y con el límite inferior en Y establecido en cero
     fig.update_xaxes(showline=True, linewidth=2, linecolor='black', gridcolor='lightgray', mirror=False,
-                     title_text='<b>Tiempo (mes)</b>', titlefont_size=18, tickfont_size=16)
+                     title_text='<b>Tiempo (mes)</b>', tickfont_size=16)
     fig.update_yaxes(showline=True, linewidth=2, linecolor='black', gridcolor='lightgray', mirror=False,
-                     title_text='<b>Generación (GW-mes)</b>', titlefont_size=18, tickfont_size=16,
+                     title_text='<b>Generación (GW-mes)</b>', tickfont_size=16,
                      tickformat='.2f')  # Límite inferior en Y establecido en 0
     fig.update_traces(hovertemplate='Periodo:</b> %{x}<br><b>Generación:</b> %{y:.2f} GW-mes<extra></extra>')
 
