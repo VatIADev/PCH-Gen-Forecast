@@ -192,6 +192,7 @@ def graficar(datos, real_lim, quant, PCH):
 
     return fig
 
+
 def estilo():
    st.markdown(
     """
@@ -283,6 +284,7 @@ def main():
         horizonte = col4.slider(':calendar: Horizonte de pronóstico (meses)', 1, 15, 15)
         selected_month = months[current_month+1] if current_month != 11 else months[0]
         fecha = pd.Timestamp(year=int(current_year), month=months.index(selected_month)+1, day=1)
+        #if st.sidebar.button(":chart_with_upwards_trend: :zap: Pronosticar", use_container_width=True):
         placeholder_1.warning("Generando pronóstico para " + PCH_fil + ", Por favor espere.... ⏳")
         modelo, val, quant, dstd = entrenar(df_filtrado, fecha, horizonte)
         est_pron, forecast = pronostico(val, modelo, horizonte, real_lim=15, std=dstd)
@@ -294,7 +296,7 @@ def main():
         else:
           extracto = pd.DataFrame(columns=['ds', 'Low', 'yhat1'])
 
-        if PCH_fil != 'FLRD':
+        if PCH_fil not in ['FLRD', 'CAUC', 'VAT1']:
           extracto['yhat1'] = extracto['yhat1'].apply(lambda x: max(x, 0))
         else:
           extracto['yhat1'] = forecast['High'].iloc[15:].apply(lambda x: max(x, 0))
